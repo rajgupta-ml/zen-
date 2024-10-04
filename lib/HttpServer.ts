@@ -3,7 +3,7 @@ import { ZenResponse } from "./response";
 import { TcpServer } from "./TcpServer";
 
 
-type IRouteHandlerCallback = (request: IHttpRequest, response: IHttpResponse) => void
+type IRouteHandlerCallback = (request: IHttpRequest, response: IHttpResponse) => Promise<void> | void
 
 export class zen extends TcpServer {
 	private availableRoutes: { [Key: string]: Map<string, IRouteHandlerCallback> }
@@ -16,17 +16,29 @@ export class zen extends TcpServer {
 			DELETE: new Map()
 		}
 	}
-	handleRequest(data: Buffer): string {
-		const request: IHttpRequest = this.parseRequest(data);
-		const response = new ZenResponse()
-		const handler = this.availableRoutes[request.method]?.get(request.url)
-		// Get request
-		if (handler) {
-			handler(request, response)
-		} else {
-			response.status(404).send('404 not found')
+	async handleRequest(data: Buffer): Promise<string> {
+		try {
+
+			const request: IHttpRequest = this.parseRequest(data);
+			const response = new ZenResponse()
+			const handler = this.availableRoutes[request.method]?.get(request.url)
+			// Get request
+			if (handler) {
+				await handler(request, response)
+			} else {
+				response.status(404).send('404 not found')
+			}
+
+
+			if (request.headers["connection"]?.toLowerCase() === "keep-alive") {
+				response.append('Connection', 'keep-alive')
+			}
+			return response.formatResponse(response);
+
+		} catch (error) {
+			console.error(error)
+			throw new Error("Error")
 		}
-		return response.formatResponse(response);
 	}
 
 	parseRequest(data: Buffer): IHttpRequest {

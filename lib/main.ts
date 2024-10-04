@@ -4,9 +4,16 @@ import { IHttpRequest, IHttpResponse } from "./Interface";
 const zenServer = new zen()
 zenServer.start();
 
-zenServer.get("/", (request: IHttpRequest, response: IHttpResponse) => {
-	console.log(request)
-	response.status(200).send("hello World")
+const fn = (): Promise<void> => {
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve()
+		}, 1000);
+	})
+}
+zenServer.get("/", async (request: IHttpRequest, response: IHttpResponse) => {
+	await fn()
+	response.status(200).send("Hello world")
 })
 zenServer.listen(8080, () => {
 	console.log("The server is running on 8080");
