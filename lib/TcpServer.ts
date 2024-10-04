@@ -37,13 +37,13 @@ export abstract class TcpServer {
 		})
 	}
 
-	abstract handleRequest(data: Buffer): Promise<string>
 
 	listen(PORT: number, cb: () => any) {
 		if (this.clusterEnabled) {
 			if (cluster.isPrimary) {
 				console.log("The cluster mode is enabled")
-				console.log("Master process PID:", process.pid)
+				console.log("Master process PID:", process.pid);
+				console.warn("This is stateless mechcanism memory is not shared between mutiple clusters")
 				for (let worker = 0; worker < this.NO_OF_WORKER; worker++) {
 					cluster.fork();
 				}
@@ -58,16 +58,18 @@ export abstract class TcpServer {
 		}
 	}
 
-	private keepSocketAlive(data: string): boolean {
-		return data.toLowerCase().includes("connection: keep-alive")
-	}
 
 	enableCluster(clusters: number = os.cpus().length) {
 		this.clusterEnabled = true
 		this.NO_OF_WORKER = clusters
 	}
 
+	private keepSocketAlive(data: string): boolean {
+		return data.toLowerCase().includes("connection: keep-alive")
+	}
 
+
+	abstract handleRequest(data: Buffer): Promise<string>
 
 
 }

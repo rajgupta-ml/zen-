@@ -1,9 +1,17 @@
 import { zen } from "./HttpServer";
 import { IHttpRequest, IHttpResponse } from "./Interface";
 
+
+
+const printNameMiddleware = (request: IHttpRequest, response: IHttpResponse, next: () => void) => {
+	console.log("hello this is the middle ware");
+	console.log(request)
+	next()
+}
+
 const zenServer = new zen()
 zenServer.start();
-
+zenServer.use(printNameMiddleware)
 const fn = (): Promise<void> => {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
