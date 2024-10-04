@@ -1,8 +1,11 @@
 import * as net from "net"
+import cluster from "cluster"
+import os from "os"
 export abstract class TcpServer {
 	private server?: net.Server;
-	private socket?: net.Socket;
 	private socketCache: Map<string, net.Socket> = new Map()
+	private clusterEnabled: boolean = false
+	private NO_OF_WORKER: number = 0;
 	start() {
 		this.server = net.createServer((socket) => {
 			const Key = `${socket.remoteAddress}:${socket.localPort}`
@@ -37,23 +40,34 @@ export abstract class TcpServer {
 	abstract handleRequest(data: Buffer): Promise<string>
 
 	listen(PORT: number, cb: () => any) {
-		this.server?.listen(PORT, cb)
+		if (this.clusterEnabled) {
+			if (cluster.isPrimary) {
+				console.log("The cluster mode is enabled")
+				console.log("Master process PID:", process.pid)
+				for (let worker = 0; worker < this.NO_OF_WORKER; worker++) {
+					cluster.fork();
+				}
+			} else {
+				console.log("Worker process PID: ", process.pid);
+				this.server?.listen(PORT, cb)
+
+			}
+		} else {
+			this.server?.listen(PORT, cb)
+
+		}
 	}
 
-
-	getSocket(): net.Socket {
-		if (!this.socket) throw new Error("Server is not initialized");
-		return this.socket;
-	}
-
-	setSocket(socket: net.Socket) {
-		console.log("Socket has been initalized")
-		this.socket = socket
-	}
-
-	keepSocketAlive(data: string): boolean {
+	private keepSocketAlive(data: string): boolean {
 		return data.toLowerCase().includes("connection: keep-alive")
 	}
+
+	enableCluster(clusters: number = os.cpus().length) {
+		this.clusterEnabled = true
+		this.NO_OF_WORKER = clusters
+	}
+
+
 
 
 }
