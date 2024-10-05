@@ -17,3 +17,8 @@ export interface IHttpResponse {
 	formatResponse(response: IHttpResponse): string
 }
 
+
+export type Next = () => Promise<void> | void
+export type RouteHandlerCallback = (request: IHttpRequest, response: IHttpResponse) => Promise<void> | void
+export type MiddlewareFunction = (request: IHttpRequest, response: IHttpResponse, next: Next) => Promise<void> | void
+

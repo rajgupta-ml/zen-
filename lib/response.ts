@@ -1,11 +1,11 @@
 import { IHttpResponse } from "./Interface";
 
+
 export class ZenResponse implements IHttpResponse {
 
 	private status_code: number = 200;
 	private headers: Record<string, any> = {}
 	private body: string = "";
-
 
 	status(status_code: number): IHttpResponse {
 		if (this.status_code < 100 || this.status_code > 599) {
@@ -60,6 +60,8 @@ export class ZenResponse implements IHttpResponse {
 		return responseString;
 
 	}
+	
+
 
 	private getStatusText(statusCode: number): string {
 		const statusTexts: { [key: number]: string } = {
@@ -74,4 +76,6 @@ export class ZenResponse implements IHttpResponse {
 		};
 		return statusTexts[statusCode] || 'Unknown Status';
 	}
+	
+	
 }

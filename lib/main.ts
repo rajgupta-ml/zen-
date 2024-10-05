@@ -1,17 +1,32 @@
+import path from "path";
 import { zen } from "./HttpServer";
-import { IHttpRequest, IHttpResponse } from "./Interface";
+import { IHttpRequest, IHttpResponse, Next } from "./Interface";
 
+// Async Middleware
+const globalMiddleware = async (request: IHttpRequest, response: IHttpResponse, next: Next) => {
+    await new Promise<void>((resolve) => {
+        setTimeout(() => {
+            console.log("hello this is the global middleware");
+            resolve();
+        }, 1000);
+    });
+    await next();
+};
 
-
-const printNameMiddleware = (request: IHttpRequest, response: IHttpResponse, next: () => void) => {
-	console.log("hello this is the middle ware");
-	console.log(request)
-	next()
-}
-
+const localMiddleware = async (request: IHttpRequest, response: IHttpResponse, next: Next) => {
+    await new Promise<void>((resolve) => {
+        setTimeout(() => {
+            console.log("hello this is the local middleware");
+            resolve();
+        }, 1000);
+    });
+    await next();
+};
 const zenServer = new zen()
+zenServer.enableJsonParsing();
 zenServer.start();
-zenServer.use(printNameMiddleware)
+zenServer.use(globalMiddleware)
+zenServer.use(localMiddleware,"/hello")
 const fn = (): Promise<void> => {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
@@ -19,10 +34,10 @@ const fn = (): Promise<void> => {
 		}, 1000);
 	})
 }
-zenServer.get("/", async (request: IHttpRequest, response: IHttpResponse) => {
-	await fn()
-	response.status(200).send("Hello world")
+zenServer.get("/", (request, response) => {
+		response.status(200).send("Hello World");
 })
+
 zenServer.listen(8080, () => {
 	console.log("The server is running on 8080");
 })
