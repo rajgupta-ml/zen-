@@ -1,7 +1,6 @@
 import * as net from "net"
 import cluster from "cluster"
 import os from "os"
-import { Writable } from "stream";
 export abstract class TcpServer {
 	private server?: net.Server;
 	private socketCache: Map<string, net.Socket> = new Map()

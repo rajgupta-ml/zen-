@@ -1,2 +1,5 @@
 node_modules
 dist
+.npmignore
+rajgupta23-zen-server-1.0.0.tgz
+
